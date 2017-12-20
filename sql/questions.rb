@@ -14,11 +14,13 @@ end
 class ModelBase
 
   def initialize
-    @table = nil
+    @table
+    @class
   end
 
   def self.all
-
+    data = QuestionsDatabase.instance.execute("SELECT * FROM #{@table}")
+    data.map { |datum| @class.new(datum) }
   end
 
   def self.find_by_id(id)
@@ -26,13 +28,20 @@ class ModelBase
       SELECT
         *
       FROM
-      questions
-        --#{@table}
+        #{table}
       WHERE
         id = ?
     SQL
     return nil unless question.length > 0
     question.first
+  end
+
+  def table
+    ""
+  end
+
+  def classy
+    Object
   end
 end
 
@@ -45,6 +54,12 @@ class Question < ModelBase
     @body = options['body']
     @user_id = options['user_id']
     @table = 'questions'
+  end
+
+  def self.all
+    @table = 'questions'
+    @class = Question
+    super
   end
 
   def save
@@ -69,7 +84,8 @@ class Question < ModelBase
   end
 
   def self.find_by_id(id)
-    question = super(@id)
+    @table = 'questions'
+    question = super(id)
     Question.new(question)
   end
 
@@ -136,6 +152,12 @@ class User
     @lname = options['lname']
   end
 
+  def self.all
+    @table = 'users'
+    @class = User
+    super
+  end
+
   def save
     if @id
       QuestionsDatabase.instance.execute(<<-SQL, @fname, @lname, @id)
@@ -158,16 +180,9 @@ class User
   end
 
   def self.find_by_id(id)
-    user = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        users
-      WHERE
-        id = ?
-    SQL
-    return nil unless user.length > 0
-    User.new(user.first)
+    @table = 'users'
+    user = super(id)
+    User.new(user)
   end
 
   def find_by_name(fname, lname)
@@ -226,18 +241,16 @@ class QuestionFollow
     @user_id = options['user_id']
   end
 
-  def self.find_by_id(id)
-    question_follow = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        question_follows
-      WHERE
-        id = ?
-    SQL
+  def self.all
+    @table = 'question_follows'
+    @class = QuestionFollow
+    super
+  end
 
-    return nil unless question_follow.length > 0
-    QuestionFollow.new(question_follow.first)
+  def self.find_by_id(id)
+    @table = 'question_follows'
+    question_follow = super(id)
+    QuestionFollow.new(question_follow)
   end
 
   def self.followers_for_question_id(question_id)
@@ -327,17 +340,9 @@ class Reply
   end
 
   def self.find_by_id(id)
-    reply = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        replies
-      WHERE
-        id = ?
-    SQL
-
-    return nil unless reply.length > 0
-    Reply.new(reply.first)
+    @table = 'replies'
+    reply = super(id)
+    Reply.new(reply)
   end
 
   def self.find_by_question_id(question_id)
@@ -407,17 +412,9 @@ class QuestionLike
   end
 
   def self.find_by_id(id)
-    question_like = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        question_likes
-      WHERE
-        id = ?
-    SQL
-
-    return nil unless question_like.length > 0
-    QuestionLike.new(question_like.first)
+    @table = 'question_likes'
+    question_like = super(id)
+    QuestionLike.new(question_like)
   end
 
   def self.likers_for_question_id(question_id)
