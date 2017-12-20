@@ -64,7 +64,8 @@ INSERT INTO
 VALUES
 ('How do databases work?', 'I don''t get it', (SELECT id FROM users WHERE fname = 'Paul')),
 ('Databases on assessments', 'How much of this stuff is relevant for the assessments?',
-(SELECT id FROM users WHERE fname = 'Dylan'));
+(SELECT id FROM users WHERE fname = 'Dylan')),
+('Hi', 'What''s up?', 2);
 
 INSERT INTO
   question_follows (user_id, question_id)
